@@ -55,6 +55,7 @@ Client.logs = logs
 
 containers = dict()
 last_timestamps = dict()
+start_time = datetime.now()
 
 
 def get_containers():
@@ -79,7 +80,7 @@ def get_all_logs():
 
         last_timestamp = last_timestamps.get(
             c.id,
-            datetime.utcfromtimestamp(1234567890)  # Some random time in 2009
+            start_time
         )
         logs = parse_logs(
             docker.logs(c.id, since=last_timestamp, timestamps=True),
