@@ -13,7 +13,7 @@ def send(log):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.sendto(log, (syslog_host, syslog_port))
 
-    if bool(debug):
+    if debug.lower() == 'true':
         print(log)
 
 
