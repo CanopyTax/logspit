@@ -4,6 +4,7 @@ import asyncio
 
 import aiohttp
 from datetime import datetime
+from datetime import timedelta
 from dateutil import parser
 
 from .streamers import syslog
@@ -47,37 +48,51 @@ async def inspect_container(cid):
         return await resp.json()
 
 async def get_logs(container, log_type):
-    url = 'http://docker.sock/containers/{}/logs?follow=1&timestamps=1'  #todo add "since"
-    if log_type == 'stdout':
-        url += '&stderr=0&stdout=1'
-    elif log_type == 'stderr':
-        url += '&stderr=1&stdout=0'
-    async with session.get(url.format(container.id)) as resp:
-        if resp.status != 200:
-            raise Exception('Bad call to docker. status:{status} '
-                            'response:{response}'
-                            .format(status=resp.status,
-                                    response=await resp.text()))
-        last_line = None
-        traceback = None
-        async for line in resp.content:
-            line = line.decode('ISO-8859-1')
-            log = parse_log(line)
-            if re.match(r'^\s.*', log.message):
-                future, message = last_line
-                future.cancel()
-                message += '\r\n' + log.message
-            else:
-                if traceback:
-                    future, message = last_line
-                    future.cancel()
-                    message += '\r\n' + log.message
-                    traceback = None
-                else:
-                    message = format_log(log, container, log_type)
-                    if is_python_traceback(log.message):
-                        traceback = message
-            last_line = (loop.call_later(2, syslog.send, message), message)
+    while True:
+        history = datetime.now() - timedelta(minutes=5)
+        since = last_timestamps.get(container.id, history).timestamp()
+        url = 'http://docker.sock/containers/{}/logs?follow=1&timestamps=1&since{}'
+        if log_type == 'stdout':
+            url += '&stderr=0&stdout=1'
+        elif log_type == 'stderr':
+            url += '&stderr=1&stdout=0'
+        url = url.format(container.id, since)
+        async with session.get(url) as resp:
+            if resp.status != 200:
+                raise Exception('Bad call to docker. status:{status} '
+                                'response:{response}'
+                                .format(status=resp.status,
+                                        response=await resp.text()))
+            last_line = None
+            traceback = None
+            try:
+                async for line in resp.content:
+                    line = line.decode('ISO-8859-1')
+                    log = parse_log(line)
+                    if re.match(r'^\s.*', log.message):
+                        future, message = last_line
+                        future.cancel()
+                        message += '\r\n' + log.message
+                    else:
+                        if traceback:
+                            future, message = last_line
+                            future.cancel()
+                            message += '\r\n' + log.message
+                            traceback = None
+                        else:
+                            message = format_log(log, container, log_type)
+                            if is_python_traceback(log.message):
+                                traceback = message
+                    last_line = (loop.call_later(2, syslog.send, message), message)
+                    last_timestamps[container.id] = log.timestamp
+
+                return # only exit on a clean condition
+            except TimeoutError as e:
+                # timed out, try again
+                pass
+
+
+
 
 
 async def stream_logs():
