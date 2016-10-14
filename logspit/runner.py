@@ -61,7 +61,7 @@ async def get_logs(container, log_type):
         last_line = None
         traceback = None
         async for line in resp.content:
-            line = line.decode()
+            line = line.decode('ISO-8859-1')
             log = parse_log(line)
             if re.match(r'^\s.*', log.message):
                 future, message = last_line
