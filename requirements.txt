@@ -1,4 +1,2 @@
 py-dateutil
-docker-py
-requests
 aiohttp
