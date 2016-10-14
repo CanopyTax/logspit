@@ -69,7 +69,11 @@ async def get_logs(container, log_type):
                 async for line in resp.content:
                     line = line.decode('ISO-8859-1')
                     log = parse_log(line)
-                    if re.match(r'^\s.*', log.message):
+                    if not log.message.strip():
+                        # log is just a newline or space, ignore
+                        continue
+                    if re.match(r'^\s.*', log.message) or \
+                                    log.message.strip() == '}':
                         future, message = last_line
                         future.cancel()
                         message += '\r\n' + log.message
