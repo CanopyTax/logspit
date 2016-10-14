@@ -1,4 +1,3 @@
-__author__ = 'nhumrich'
 import os
 import socket
 
@@ -15,7 +14,3 @@ def send(log):
 
     if debug.lower() == 'true':
         print(log)
-
-
-# if __name__ == "__main__":
-#     send('this is a python test')

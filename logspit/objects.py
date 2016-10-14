@@ -11,7 +11,6 @@ class Container:
 
 class Log:
 
-    def __init__(self, container=None, timestamp=None, message=None):
-        self.container = container
+    def __init__(self, timestamp=None, message=None):
         self.timestamp = timestamp
         self.message = message
