@@ -90,13 +90,10 @@ async def get_logs(container, log_type):
                     last_line = (loop.call_later(2, syslog.send, message), message)
                     last_timestamps[container.id] = log.timestamp
 
-                return # only exit on a clean condition
+                return  # only exit on a clean condition
             except TimeoutError as e:
                 # timed out, try again
                 pass
-
-
-
 
 
 async def stream_logs():
