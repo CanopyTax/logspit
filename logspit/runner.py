@@ -10,7 +10,7 @@ from docker import Client
 from .streamers import syslog
 from .objects import Container, Log
 
-docker = Client(base_url='unix://var/run/docker.sock')
+docker = Client(base_url='unix://var/run/docker.sock', version='1.22')
 
 containers = dict()
 last_timestamps = dict()
