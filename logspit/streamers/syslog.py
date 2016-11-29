@@ -10,8 +10,8 @@ debug = os.getenv('DEBUG', 'False')
 def send(log):
     if isinstance(log, str):
         log = log.encode('utf-8')
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.sendto(log, (syslog_host, syslog_port))
+    # sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # sock.sendto(log, (syslog_host, syslog_port))
 
     if debug.lower() == 'true':
         print(log)
